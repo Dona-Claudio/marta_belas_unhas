@@ -3,4 +3,5 @@ dist/
 .env
 backend/vendor/
 backend/.env
+data/
 .DS_Store

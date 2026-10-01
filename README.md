@@ -31,6 +31,17 @@ backend/database/           Schema MySQL/MariaDB
 
 O primeiro cadastro recebe papel de cliente. Depois de criar a conta da profissional, promova apenas essa conta com acesso direto ao banco: `UPDATE users SET role = 'manicure' WHERE email = 'EMAIL_CONFIRMADO';`. O cadastro publico nunca cria contas de manicure.
 
+## Exportar publicacoes do Instagram
+
+O projeto nao automatiza login de navegador. Para exportar publicacoes, use a API oficial da Meta e uma conta profissional que Marta administre ou tenha autorizado, com as permissoes de leitura exigidas pela plataforma.
+
+1. Configure um app Meta e obtenha o ID da conta profissional e um token de acesso com permissao `instagram_basic` e as permissoes de pagina exigidas para essa conta.
+2. Copie `scripts/instagram.env.example` para `.env` e preencha `INSTAGRAM_USER_ID` e `INSTAGRAM_ACCESS_TOKEN`. Nunca envie o token ao Git ou a conversas.
+3. Com Node.js 20.6 ou superior, rode na raiz: `node --env-file=.env scripts/export-instagram-media.mjs`.
+4. O arquivo `data/marta-instagram-posts.json` conterá as URLs diretas disponíveis via API, os links permanentes, legendas, tipo e data; carrosséis incluem seus itens. Para escolher outro caminho: `node --env-file=.env scripts/export-instagram-media.mjs caminho/saida.json`.
+
+As URLs de mídia podem expirar ou mudar segundo as regras da Meta; o `permalink` é o link permanente da publicação. O script grava a saída local com permissões restritas e `data/` está no `.gitignore` para não publicar links por acidente.
+
 ## Fluxos
 
 - Cliente cria conta, escolhe servico, solicita dia/horario e descreve o que deseja.
