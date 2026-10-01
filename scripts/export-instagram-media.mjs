@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url'
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url))
 const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0'
-const instagramUserId = process.env.INSTAGRAM_USER_ID
 const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN
+const instagramUsername = process.env.INSTAGRAM_USERNAME?.replace(/^@/, '').toLowerCase()
 const outputPath = path.resolve(process.cwd(), process.argv[2] || 'data/marta-instagram-posts.json')
 const apiRoot = `https://graph.facebook.com/${apiVersion}`
 
-if (!instagramUserId || !accessToken) {
-  console.error('Defina INSTAGRAM_USER_ID e INSTAGRAM_ACCESS_TOKEN no ambiente ou em .env.')
+if (!accessToken) {
+  console.error('Defina INSTAGRAM_ACCESS_TOKEN no ambiente ou em .env.')
   process.exit(1)
 }
 
@@ -48,8 +48,32 @@ async function graphGet(edge, fields) {
 }
 
 async function main() {
+  const pages = await graphGet(
+    'me/accounts',
+    'id,name,instagram_business_account{id,username}',
+  )
+  const accounts = pages.flatMap((page) => {
+    const account = page.instagram_business_account
+    return account ? [{ id: account.id, username: account.username, pageName: page.name }] : []
+  })
+  const matchingAccounts = instagramUsername
+    ? accounts.filter((account) => account.username?.toLowerCase() === instagramUsername)
+    : accounts
+
+  if (matchingAccounts.length !== 1) {
+    const available = accounts.map((account) => `@${account.username}`).join(', ')
+    if (matchingAccounts.length > 1 || (accounts.length > 1 && !instagramUsername)) {
+      throw new Error(`O token acessa mais de uma conta profissional (${available}). Defina INSTAGRAM_USERNAME para escolher a correta.`)
+    }
+    if (instagramUsername && accounts.length > 0) {
+      throw new Error(`A conta @${instagramUsername} não foi encontrada entre as contas acessíveis: ${available}.`)
+    }
+    throw new Error('Nenhuma conta profissional do Instagram foi encontrada nas Páginas acessíveis pelo token. Verifique a Página vinculada e as permissões.')
+  }
+
+  const instagramAccount = matchingAccounts[0]
   const media = await graphGet(
-    `${encodeURIComponent(instagramUserId)}/media`,
+    `${encodeURIComponent(instagramAccount.id)}/media`,
     'id,caption,media_type,media_url,permalink,timestamp,thumbnail_url',
   )
 
@@ -75,7 +99,9 @@ async function main() {
 
   const output = {
     exported_at: new Date().toISOString(),
-    instagram_user_id: instagramUserId,
+    instagram_user_id: instagramAccount.id,
+    instagram_username: instagramAccount.username,
+    facebook_page_name: instagramAccount.pageName,
     posts,
   }
   const directory = path.dirname(outputPath)

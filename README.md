@@ -35,12 +35,12 @@ O primeiro cadastro recebe papel de cliente. Depois de criar a conta da profissi
 
 O projeto nao automatiza login de navegador. Para exportar publicacoes, use a API oficial da Meta e uma conta profissional que Marta administre ou tenha autorizado, com as permissoes de leitura exigidas pela plataforma.
 
-1. Configure um app Meta e obtenha o ID da conta profissional e um token de acesso com permissao `instagram_basic` e as permissoes de pagina exigidas para essa conta.
-2. Copie `scripts/instagram.env.example` para `.env` e preencha `INSTAGRAM_USER_ID` e `INSTAGRAM_ACCESS_TOKEN`. Nunca envie o token ao Git ou a conversas.
+1. Configure um app Meta e obtenha um token de acesso com permissao `instagram_basic` e `pages_show_list`, autorizado pela pessoa que administra a Pagina ligada ao Instagram da Marta.
+2. Copie `scripts/instagram.env.example` para `.env` e preencha `INSTAGRAM_ACCESS_TOKEN`. `INSTAGRAM_USERNAME` e opcional para escolher @martah.dona quando o token puder acessar varias contas. Nunca envie o token ao Git ou a conversas.
 3. Com Node.js 20.6 ou superior, rode na raiz: `node --env-file=.env scripts/export-instagram-media.mjs`.
 4. O arquivo `data/marta-instagram-posts.json` conterá as URLs diretas disponíveis via API, os links permanentes, legendas, tipo e data; carrosséis incluem seus itens. Para escolher outro caminho: `node --env-file=.env scripts/export-instagram-media.mjs caminho/saida.json`.
 
-As URLs de mídia podem expirar ou mudar segundo as regras da Meta; o `permalink` é o link permanente da publicação. O script grava a saída local com permissões restritas e `data/` está no `.gitignore` para não publicar links por acidente.
+O script descobre o ID do perfil automaticamente pelas Páginas acessíveis ao token, então não é necessário procurar o ID da Página nem o ID do Instagram manualmente. As URLs de mídia podem expirar ou mudar segundo as regras da Meta; o `permalink` é o link permanente da publicação. O script grava a saída local com permissões restritas e `data/` está no `.gitignore` para não publicar links por acidente.
 
 ## Fluxos
 
